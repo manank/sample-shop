@@ -9,22 +9,35 @@ $(document).ready(function() {
 
   $("textarea#taCanMakePayment").val("PaymentRequest API is available!");
 
-  //data to be used alongside spay
-  var payData = {
-    //product ID obtained from Samsung onboarding portal
-    "version": '1',
-    'allowedCardNetworks': ['AMEX', 'mastercard', 'visa'],
-    'orderNumber': "1233123",
-    'merchantName': 'Shop Samsung (demo)'
-  }
+  let networks = ['amex', 'diners', 'discover', 'jcb', 'mastercard', 'unionpay',
+    'visa', 'mir'
+  ];
+  let types = ['debit', 'credit', 'prepaid'];
 
-  var supportedInstruments = [{
-    supportedMethods: 'https://spay.samsung.com', // current url
+  let payData = {
+    checkoutPartner: "VisaCheckout",
+    requestPayload: {
+      data: {
+        checkoutPaymentInfo: null,
+        visaIntentData: null,
+        paymentInitParams: {}
+      }
+    }
+  };
+
+  let basicCardPaymentMethod = {
+    supportedMethods: 'basic-card',
+    data: {
+      supportedNetworks: networks,
+      supportedTypes: types
+    }
+  };
+
+  let methodData = [{
+    supportedMethods: ["https://ecomm.mpay.samsung.com/ew/v1/vco/w3c"],
     data: payData
   }];
-
-  // details contain info about the transaction
-  var details = {
+  let details = {
     total: {
       label: "Total due",
       amount: {
@@ -34,14 +47,7 @@ $(document).ready(function() {
     }
   };
 
-  // collect additional information
-  var options = {};
-
-  var paymentRequest = new PaymentRequest(
-    supportedInstruments, // required payment method data
-    details, // required information about transaction
-    options // optional parameter for things like shipping, etc.
-  );
+  var paymentRequest = new PaymentRequest(methodData, details, {});
 
   // Feature detect canMakePayment()
   if (paymentRequest.canMakePayment) {
