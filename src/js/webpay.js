@@ -19,7 +19,7 @@ $(document).ready(function() {
   }
 
   var supportedInstruments = [{
-    supportedMethods: ['https://spay.samsung.com'], // current url
+    supportedMethods: 'https://spay.samsung.com', // current url
     data: payData
   }];
 
@@ -37,18 +37,36 @@ $(document).ready(function() {
   // collect additional information
   var options = {};
 
-  var payment = new PaymentRequest(
+  var paymentRequest = new PaymentRequest(
     supportedInstruments, // required payment method data
     details, // required information about transaction
     options // optional parameter for things like shipping, etc.
   );
 
-  if (!payment.canMakePayment()) {
-    console.log("Cannot make payment.")
-    $("textarea#taCanMakePayment").val("Cannot make payment.");
-    return;
+  // Feature detect canMakePayment()
+  if (paymentRequest.canMakePayment) {
+    canMakePaymentPromise = paymentRequest.canMakePayment();
   }
 
-  console.log("Can make payment")
-  $("textarea#taCanMakePayment").val("Can make payment!");
+  canMakePaymentPromise.then((result) => {
+      if (!result) {
+        $("textarea#taCanMakePayment").val("Cannot make payment.");
+        return;
+      }
+
+      $("textarea#taCanMakePayment").val("Can make payment!");
+      $("#payButton").show();
+
+      $("#payButton").click(function() {
+        // Make PaymentRequest show to display payment sheet
+        payment.show().then(paymentResponse => {
+          console.log(paymentResponse);
+        }).catch(err => {
+          console.error("Uh oh, something bad happened", err);
+        });
+      });
+    })
+    .catch((err) => {
+      console.error(err);
+    });
 })
